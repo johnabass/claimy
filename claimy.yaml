@@ -5,6 +5,8 @@ address: :8080
 # any number of scripts may be supplied, and they are executed
 # in the order given here.  each entry may be a glob, in which case
 # multiple scripts matching that glob will be executed.
+#
+# each of the script paths may also include environment variables.
 scripts:
   - $HOME/.claimy/test.js
 
