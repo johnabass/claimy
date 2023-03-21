@@ -29,9 +29,9 @@ func provideServer() fx.Option {
 
 				return
 			},
-			func(l *zap.Logger, mux *http.ServeMux) *http.Server {
+			func(l *zap.Logger, cfg Configuration, mux *http.ServeMux) *http.Server {
 				return &http.Server{
-					Addr:    ":8080",
+					Addr:    cfg.Address,
 					Handler: mux,
 				}
 			},
