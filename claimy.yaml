@@ -1,6 +1,10 @@
+address: :8080
+
 claims:
   iss:
     claimy
   custom:
     - foo
     - bar
+
+validFor: 1h

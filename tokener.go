@@ -93,7 +93,7 @@ func provideTokener() fx.Option {
 				return otto.New()
 			},
 			func(l *zap.Logger, vm *otto.Otto, cfg Configuration) (Tokener, error) {
-				l.Info("configured claims", zap.Any("claims", cfg.Claims))
+				l.Info("configured claims", zap.Any("claims", cfg.Claims), zap.Duration("validFor", cfg.ValidFor))
 
 				t := tokener{
 					vm:       vm,
