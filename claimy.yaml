@@ -1,5 +1,14 @@
+# Sample configuration file for claimy
+#
 address: :8080
 
+# any number of scripts may be supplied, and they are executed
+# in the order given here.  each entry may be a glob, in which case
+# multiple scripts matching that glob will be executed.
+scripts:
+  - $HOME/.claimy/test.js
+
+# static claims added to every token
 claims:
   iss:
     claimy
@@ -7,4 +16,5 @@ claims:
     - foo
     - bar
 
+# the time interval for which a token is valid
 validFor: 1h
