@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"mime"
 	"net/http"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -14,49 +15,82 @@ import (
 	"go.uber.org/zap"
 )
 
-type KeyHandler struct {
-	l *zap.Logger
-	k jwk.Key
-	s jwk.Set
+type KeySetHandler struct {
+	l   *zap.Logger
+	set jwk.Set
 }
 
-func (kh KeyHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	var (
-		body   []byte
-		err    error
-		accept = request.Header.Get("Accept")
-	)
-
-	switch accept {
-	case "application/x-pem-file":
-		body, err = jwk.EncodePEM(kh.k)
-
-	case "application/jwk-set+json":
-		body, err = json.Marshal(kh.s)
-
-	case "":
-		fallthrough
-	case "*/*":
-		fallthrough
-	case "application/jwk+json":
-		body, err = json.Marshal(kh.k)
-
-	default:
-		kh.l.Error("unsupported media type requested by client", zap.String("Accept", accept))
-		response.WriteHeader(http.StatusUnsupportedMediaType)
+func (ksh KeySetHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+	body, err := json.Marshal(ksh.set)
+	if err != nil {
+		ksh.l.Error("unable to marshal JWK set", zap.Error(err))
+		response.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if err == nil {
-		_, err = response.Write(body)
+	response.Header().Set("Content-Type", "application/jwk-set+json")
+	response.Write(body)
+}
+
+type KeyHandler struct {
+	l   *zap.Logger
+	key jwk.Key
+}
+
+func (kh KeyHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+	contentType := "application/jwk+json"
+	if accept := request.Header.Get("Accept"); len(accept) > 0 {
+		mediaType, params, err := mime.ParseMediaType(accept)
+		switch {
+		case err != nil:
+			kh.l.Error("invalid Accept header", zap.Error(err))
+			response.WriteHeader(http.StatusBadRequest)
+			return
+
+		case len(params) > 0:
+			kh.l.Error("parameters aren't supported in the Accept header")
+			response.WriteHeader(http.StatusUnsupportedMediaType)
+			return
+
+		case mediaType == "application/jwk+json":
+			fallthrough
+
+		case mediaType == "application/x-pem-file":
+			contentType = mediaType
+
+		case mediaType == "*/*":
+			fallthrough
+
+		case mediaType == "application/*":
+			contentType = "application/jwk+json"
+
+		default:
+			kh.l.Error("unsupported media type", zap.String("mediaType", mediaType))
+			response.WriteHeader(http.StatusUnsupportedMediaType)
+			return
+		}
+	}
+
+	var (
+		body []byte
+		err  error
+	)
+
+	switch contentType {
+	case "application/jwk+json":
+		body, err = json.Marshal(kh.key)
+
+	case "application/x-pem-file":
+		body, err = jwk.EncodePEM(kh.key)
 	}
 
 	if err != nil {
-		kh.l.Error("unable to write key to response", zap.Error(err))
+		kh.l.Error("unable to encode key", zap.Error(err))
 		response.WriteHeader(http.StatusInternalServerError)
-	} else {
-		response.WriteHeader(http.StatusOK)
 	}
+
+	response.Header().Set("Content-Type", contentType)
+	response.Write(body)
 }
 
 func provideKey() fx.Option {
@@ -86,9 +120,19 @@ func provideKey() fx.Option {
 
 				if err == nil {
 					kh.l = l
-					kh.k = pub
-					kh.s = jwk.NewSet()
-					kh.s.AddKey(pub)
+					kh.key = pub
+				}
+
+				return
+			},
+			func(l *zap.Logger, key jwk.Key) (khs KeySetHandler, err error) {
+				var pub jwk.Key
+				pub, err = key.PublicKey()
+
+				if err == nil {
+					khs.l = l
+					khs.set = jwk.NewSet()
+					khs.set.AddKey(pub)
 				}
 
 				return

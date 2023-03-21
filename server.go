@@ -8,12 +8,22 @@ import (
 	"go.uber.org/zap"
 )
 
+type serveMuxIn struct {
+	fx.In
+
+	KeyHandler    KeyHandler
+	KeySetHandler KeySetHandler
+}
+
 func provideServer() fx.Option {
 	return fx.Options(
 		fx.Provide(
-			func(kh KeyHandler) (mux *http.ServeMux) {
+			func(in serveMuxIn) (mux *http.ServeMux) {
 				mux = http.NewServeMux()
-				mux.Handle("/key", kh)
+
+				mux.Handle("/keys/"+in.KeyHandler.key.KeyID(), in.KeyHandler)
+				mux.Handle("/keys", in.KeySetHandler)
+
 				return
 			},
 			func(l *zap.Logger, mux *http.ServeMux) *http.Server {

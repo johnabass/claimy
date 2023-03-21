@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 type Configuration struct {
@@ -13,7 +14,7 @@ type Configuration struct {
 func provideConfiguration() fx.Option {
 	return fx.Options(
 		fx.Provide(
-			func() (v *viper.Viper, err error) {
+			func(l *zap.Logger) (v *viper.Viper, err error) {
 				v = viper.New()
 				v.SetConfigName("claimy")
 				v.AddConfigPath(".")
@@ -21,6 +22,10 @@ func provideConfiguration() fx.Option {
 				v.AddConfigPath("/etc/claimy")
 
 				err = v.ReadInConfig()
+				if err == nil {
+					l.Info("configuration file found", zap.String("file", v.ConfigFileUsed()))
+				}
+
 				return
 			},
 			func(v *viper.Viper) (cfg Configuration, err error) {
