@@ -12,9 +12,10 @@ import (
 type serveMuxIn struct {
 	fx.In
 
-	KeyHandler    KeyHandler
-	KeySetHandler KeySetHandler
-	IssueHandler  IssueHandler
+	KeyHandler     KeyHandler
+	KeySetHandler  KeySetHandler
+	IssueHandler   IssueHandler
+	ContentHandler ContentHandler
 }
 
 func provideServer() fx.Option {
@@ -26,6 +27,7 @@ func provideServer() fx.Option {
 				mux.Handle("/keys/"+in.KeyHandler.key.KeyID(), in.KeyHandler)
 				mux.Handle("/keys", in.KeySetHandler)
 				mux.Handle("/issue", in.IssueHandler)
+				mux.Handle("/content/", in.ContentHandler)
 
 				return
 			},

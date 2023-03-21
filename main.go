@@ -11,6 +11,7 @@ func main() {
 	app := fx.New(
 		provideLogging(),
 		provideConfiguration(),
+		provideContent(),
 		provideKey(),
 		provideTokener(),
 		provideServer(),
