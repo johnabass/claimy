@@ -1,0 +1,6 @@
+claims:
+  iss:
+    claimy
+  custom:
+    - foo
+    - bar

@@ -12,6 +12,7 @@ func main() {
 		provideLogging(),
 		provideConfiguration(),
 		provideKey(),
+		provideTokener(),
 		provideServer(),
 	)
 

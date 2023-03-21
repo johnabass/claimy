@@ -1,6 +1,10 @@
 package main
 
 import (
+	"errors"
+	"time"
+
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -9,6 +13,9 @@ import (
 type Configuration struct {
 	Address string
 	Scripts []string
+
+	Claims   map[string]interface{}
+	ValidFor time.Duration
 }
 
 func provideConfiguration() fx.Option {
@@ -22,6 +29,12 @@ func provideConfiguration() fx.Option {
 				v.AddConfigPath("/etc/claimy")
 
 				err = v.ReadInConfig()
+
+				var notFoundErr viper.ConfigFileNotFoundError
+				if errors.As(err, &notFoundErr) {
+					err = nil // ignore
+				}
+
 				if err == nil {
 					l.Info("configuration file found", zap.String("file", v.ConfigFileUsed()))
 				}
@@ -29,7 +42,13 @@ func provideConfiguration() fx.Option {
 				return
 			},
 			func(v *viper.Viper) (cfg Configuration, err error) {
-				err = v.Unmarshal(&cfg)
+				err = v.Unmarshal(
+					&cfg,
+					func(dco *mapstructure.DecoderConfig) {
+						dco.ErrorUnused = true
+					},
+				)
+
 				return
 			},
 		),
