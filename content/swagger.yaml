@@ -20,9 +20,16 @@ paths:
                   keys:
                     type: array
                     description: An array of JWK keys
-  /keys/{kid}:
+  /keys/{keyID}:
     get:
       summary: Returns a public verification key with the given key id
+      parameters:
+        - in: path
+          name: keyID
+          schema:
+            type: string
+          required: true
+          description: the public key identifier
       responses:
         '200':
           description: A JWK public key
