@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"go.uber.org/fx"
@@ -34,17 +35,21 @@ func provideServer() fx.Option {
 			},
 		),
 		fx.Invoke(
-			func(l fx.Lifecycle, s *http.Server) {
+			func(l fx.Lifecycle, s fx.Shutdowner, logger *zap.Logger, server *http.Server) {
 				l.Append(fx.Hook{
 					OnStart: func(context.Context) error {
 						go func() {
-							s.ListenAndServe()
+							defer s.Shutdown()
+							err := server.ListenAndServe()
+							if err != nil && !errors.Is(err, http.ErrServerClosed) {
+								logger.Error("error starting server", zap.Error(err))
+							}
 						}()
 
 						return nil
 					},
 					OnStop: func(ctx context.Context) error {
-						return s.Shutdown(ctx)
+						return server.Shutdown(ctx)
 					},
 				})
 			},
