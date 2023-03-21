@@ -96,7 +96,7 @@ func (kh KeyHandler) ServeHTTP(response http.ResponseWriter, request *http.Reque
 func provideKey() fx.Option {
 	return fx.Options(
 		fx.Provide(
-			func() (key jwk.Key, err error) {
+			func(l *zap.Logger) (key jwk.Key, err error) {
 				var (
 					pk  *ecdsa.PrivateKey
 					kid [16]byte
@@ -111,7 +111,9 @@ func provideKey() fx.Option {
 					_, err = io.ReadFull(rand.Reader, kid[:])
 				}
 
-				err = key.Set(jwk.KeyIDKey, base64.RawURLEncoding.EncodeToString(kid[:]))
+				kidString := base64.RawURLEncoding.EncodeToString(kid[:])
+				l.Info("generated key", zap.String("kid", kidString))
+				err = key.Set(jwk.KeyIDKey, kidString)
 				return
 			},
 			func(l *zap.Logger, key jwk.Key) (kh KeyHandler, err error) {
