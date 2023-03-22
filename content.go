@@ -27,7 +27,8 @@ func provideContent() fx.Option {
 			func() SwaggerYAMLHandler {
 				return SwaggerYAMLHandler(
 					http.HandlerFunc(func(response http.ResponseWriter, _ *http.Request) {
-						//response.Header().Set("Content-Type", "application/yaml")
+						// NOTE: don't set a content type, since that seems to mess up browsers
+						// since there is, as yet, no official MIME type for YAML
 						response.Write(swaggerYAML)
 					}),
 				)
