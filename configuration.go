@@ -29,14 +29,14 @@ func provideConfiguration() fx.Option {
 				v.AddConfigPath("/etc/claimy")
 
 				err = v.ReadInConfig()
-
 				var notFoundErr viper.ConfigFileNotFoundError
-				if errors.As(err, &notFoundErr) {
-					err = nil // ignore
-				}
-
-				if err == nil {
+				switch {
+				case err == nil:
 					l.Info("configuration file found", zap.String("file", v.ConfigFileUsed()))
+
+				case errors.As(err, &notFoundErr):
+					err = nil // ignore
+					l.Info("no configuration file")
 				}
 
 				return
