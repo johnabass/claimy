@@ -52,6 +52,10 @@ paths:
   /issue:
     get:
       summary: Issues a JWT token to the caller
+      operationId: issueToken
+      externalDocs:
+        description: Parse and view the token
+        url: https://jwt.io
       responses:
         '200':
           description: A JWT token
@@ -59,4 +63,4 @@ paths:
             application/jwt:
               schema:
                 type: string
-
+    
