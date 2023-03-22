@@ -8,11 +8,25 @@ servers:
   - url: /
     description: "localhost"
 
+tags:
+  - name: keys
+    description: Retrieve public keys used to verify JWTs issued by claimy
+    externalDocs:
+      description: JOSE specification
+      url: https://www.iana.org/assignments/jose/jose.xhtml#web-key-types
+  - name: issue
+    description: Obtain a JWT token
+    externalDocs:
+      description: Parse and view JWT tokens
+      url: https://jwt.io
+
 paths:
   /keys:
     get:
       summary: Returns the JWK key set of public keys
       description: Returns the JWK key set of public keys used to verify the signatures of JWT tokens issued by claimy.
+      tags:
+        - keys
       responses:
         '200':
           description: A JWK key set
@@ -29,6 +43,8 @@ paths:
   /keys/{keyID}:
     get:
       summary: Returns a public verification key with the given key id
+      tags:
+        - keys
       parameters:
         - in: path
           name: keyID
@@ -56,9 +72,8 @@ paths:
     get:
       summary: Issues a JWT token to the caller
       operationId: issueToken
-      externalDocs:
-        description: Parse and view the token
-        url: https://jwt.io
+      tags:
+        - issue
       responses:
         '200':
           description: A JWT token
