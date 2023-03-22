@@ -29,7 +29,7 @@ func provideServer() fx.Option {
 				mux.Handle("/keys", in.KeySetHandler)
 				mux.Handle("/issue", in.IssueHandler)
 				mux.Handle("/swaggerui/", in.SwaggerUIHandler)
-				mux.Handle("/swagger.yaml", in.SwaggerYAMLHandler)
+				mux.Handle("/openapi.yaml", in.SwaggerYAMLHandler)
 
 				return
 			},

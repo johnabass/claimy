@@ -14,8 +14,8 @@ import (
 //go:embed swaggerui
 var swaggerui embed.FS
 
-//go:embed swagger.yaml.gt
-var swaggerYAML string
+//go:embed openapi.yaml.gt
+var openapiYAML string
 
 type SwaggerUIHandler http.Handler
 type SwaggerYAMLHandler http.Handler
@@ -34,7 +34,7 @@ func provideContent() fx.Option {
 					yaml  []byte
 				)
 
-				tmplt, err = template.New("swagger.yaml").Parse(swaggerYAML)
+				tmplt, err = template.New("openapi.yaml").Parse(openapiYAML)
 				if err == nil {
 					var output bytes.Buffer
 					err = tmplt.Execute(
