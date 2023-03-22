@@ -4,6 +4,10 @@ info:
   description: A prototype JWT issuer that permits customization of the tokens via Javascript.
   version: 0.0.1
 
+servers:
+  - url: /
+    description: "localhost"
+
 paths:
   /keys:
     get:
