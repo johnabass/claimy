@@ -30,6 +30,7 @@ paths:
             type: string
           required: true
           description: the public key identifier
+          default: {{.defaultKeyID}}
       responses:
         '200':
           description: A JWK public key
