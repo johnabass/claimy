@@ -137,7 +137,7 @@ func provideKey() fx.Option {
 				if err == nil {
 					khs.l = l
 					khs.set = jwk.NewSet()
-					khs.set.AddKey(pub)
+					err = khs.set.AddKey(pub)
 				}
 
 				return
