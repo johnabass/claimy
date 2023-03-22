@@ -7,20 +7,30 @@ import (
 	"go.uber.org/fx"
 )
 
-//go:embed content
-var content embed.FS
+//go:embed swaggerui
+var swaggerui embed.FS
 
-type ContentHandler http.Handler
+//go:embed swagger.yaml
+var swaggerYAML []byte
+
+type SwaggerUIHandler http.Handler
+type SwaggerYAMLHandler http.Handler
 
 func provideContent() fx.Option {
 	return fx.Options(
-		fx.Supply(content),
 		fx.Provide(
-			func(content embed.FS) http.FileSystem {
-				return http.FS(content)
+			func() SwaggerUIHandler {
+				return http.FileServer(
+					http.FS(swaggerui),
+				)
 			},
-			func(root http.FileSystem) ContentHandler {
-				return http.FileServer(root)
+			func() SwaggerYAMLHandler {
+				return SwaggerYAMLHandler(
+					http.HandlerFunc(func(response http.ResponseWriter, _ *http.Request) {
+						//response.Header().Set("Content-Type", "application/yaml")
+						response.Write(swaggerYAML)
+					}),
+				)
 			},
 		),
 	)
