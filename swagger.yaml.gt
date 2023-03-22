@@ -20,6 +20,8 @@ paths:
                   keys:
                     type: array
                     description: An array of JWK keys
+                    items:
+                      type: object
   /keys/{keyID}:
     get:
       summary: Returns a public verification key with the given key id
