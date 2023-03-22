@@ -36,7 +36,10 @@ paths:
             type: string
           required: true
           description: the public key identifier
-          default: {{.defaultKeyID}}
+          examples:
+            current:
+              value: {{.defaultKeyID}}
+              summary: the current public key in use by this server
       responses:
         '200':
           description: A JWK public key
