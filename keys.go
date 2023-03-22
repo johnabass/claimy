@@ -111,9 +111,12 @@ func provideKey() fx.Option {
 					_, err = io.ReadFull(rand.Reader, kid[:])
 				}
 
-				kidString := base64.RawURLEncoding.EncodeToString(kid[:])
-				l.Info("generated key", zap.String("kid", kidString))
-				err = key.Set(jwk.KeyIDKey, kidString)
+				if err == nil {
+					kidString := base64.RawURLEncoding.EncodeToString(kid[:])
+					l.Info("generated key", zap.String("kid", kidString))
+					err = key.Set(jwk.KeyIDKey, kidString)
+				}
+
 				return
 			},
 			func(l *zap.Logger, key jwk.Key) (kh KeyHandler, err error) {

@@ -45,7 +45,12 @@ func provideServer() fx.Option {
 				l.Append(fx.Hook{
 					OnStart: func(context.Context) error {
 						go func() {
-							defer s.Shutdown()
+							defer func() {
+								if err := s.Shutdown(); err != nil {
+									logger.Error("error shutting down server", zap.Error(err))
+								}
+							}()
+
 							err := server.ListenAndServe()
 							if err != nil && !errors.Is(err, http.ErrServerClosed) {
 								logger.Error("error starting server", zap.Error(err))
