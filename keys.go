@@ -15,6 +15,12 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	JWKMediaType    = "application/jwk+json"
+	JWKSetMediaType = "application/jwk-set+json"
+	PEMMediaType    = "application/x-pem-file"
+)
+
 type KeySetHandler struct {
 	l   *zap.Logger
 	set jwk.Set
@@ -28,7 +34,7 @@ func (ksh KeySetHandler) ServeHTTP(response http.ResponseWriter, request *http.R
 		return
 	}
 
-	response.Header().Set("Content-Type", "application/jwk-set+json")
+	response.Header().Set("Content-Type", JWKSetMediaType)
 	response.Write(body)
 }
 
@@ -38,7 +44,7 @@ type KeyHandler struct {
 }
 
 func (kh KeyHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	contentType := "application/jwk+json"
+	responseMediaType := JWKMediaType
 	if accept := request.Header.Get("Accept"); len(accept) > 0 {
 		mediaType, params, err := mime.ParseMediaType(accept)
 		switch {
@@ -52,17 +58,17 @@ func (kh KeyHandler) ServeHTTP(response http.ResponseWriter, request *http.Reque
 			response.WriteHeader(http.StatusUnsupportedMediaType)
 			return
 
-		case mediaType == "application/jwk+json":
+		case mediaType == JWKMediaType:
 			fallthrough
 
-		case mediaType == "application/x-pem-file":
-			contentType = mediaType
+		case mediaType == PEMMediaType:
+			responseMediaType = mediaType
 
 		case mediaType == "*/*":
 			fallthrough
 
 		case mediaType == "application/*":
-			contentType = "application/jwk+json"
+			responseMediaType = JWKMediaType
 
 		default:
 			kh.l.Error("unsupported media type", zap.String("mediaType", mediaType))
@@ -76,20 +82,21 @@ func (kh KeyHandler) ServeHTTP(response http.ResponseWriter, request *http.Reque
 		err  error
 	)
 
-	switch contentType {
-	case "application/jwk+json":
+	switch responseMediaType {
+	case JWKMediaType:
 		body, err = json.Marshal(kh.key)
 
-	case "application/x-pem-file":
+	default:
 		body, err = jwk.EncodePEM(kh.key)
 	}
 
 	if err != nil {
 		kh.l.Error("unable to encode key", zap.Error(err))
 		response.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	response.Header().Set("Content-Type", contentType)
+	response.Header().Set("Content-Type", responseMediaType)
 	response.Write(body)
 }
 
