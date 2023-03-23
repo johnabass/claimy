@@ -46,7 +46,7 @@ func (ih IssueHandler) ServeHTTP(response http.ResponseWriter, request *http.Req
 		return
 	}
 
-	response.Header().Set("Content-Type", "application/jwt")
+	JWTMediaType.SetContentType(response.Header())
 	response.Write(body)
 }
 
